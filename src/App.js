@@ -1,5 +1,10 @@
 import './App.css';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Redirect,
+  Route,
+  Switch,
+} from 'react-router-dom';
 import Dashboard from './pages/dashboard/Dashboard';
 import Create from './pages/create/Create';
 import Project from './pages/project/Project';
@@ -7,33 +12,43 @@ import Signup from './pages/signup/Signup';
 import Login from './pages/login/Login';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import { useAuthContext } from './hooks/useAuthContext';
 
 function App() {
+  const { user, authIsReady } = useAuthContext();
+
   return (
     <div className='App'>
-      <Router>
-        <Sidebar />
-        <div className='container'>
-          <Navbar />
-          <Switch>
-            <Route exact path='/'>
-              <Dashboard />
-            </Route>
-            <Route path='/create'>
-              <Create />
-            </Route>
-            <Route path='/projects/:id'>
-              <Project />
-            </Route>
-            <Route path='/login'>
-              <Login />
-            </Route>
-            <Route path='/signup'>
-              <Signup />
-            </Route>
-          </Switch>
-        </div>
-      </Router>
+      {authIsReady && (
+        <Router>
+          <Sidebar />
+          <div className='container'>
+            <Navbar />
+            <Switch>
+              <Route exact path='/'>
+                {user && <Dashboard />}
+                {!user && <Redirect to='/login' />}
+              </Route>
+              <Route path='/create'>
+                {user && <Create />}
+                {!user && <Redirect to='/login' />}
+              </Route>
+              <Route path='/projects/:id'>
+                {user && <Project />}
+                {!user && <Redirect to='/login' />}
+              </Route>
+              <Route path='/login'>
+                {!user && <Login />}
+                {user && <Redirect to='/' />}
+              </Route>
+              <Route path='/signup'>
+                {!user && <Signup />}
+                {user && <Redirect to='/' />}
+              </Route>
+            </Switch>
+          </div>
+        </Router>
+      )}
     </div>
   );
 }
