@@ -66,7 +66,7 @@ const Create = () => {
       name,
       details,
       category: category.value,
-      dueDate: timestamp.fromDate(new Date(dueDate)),
+      dueDate: timestamp(dueDate),
       comments: [],
       createdBy,
       assignedUsersList,

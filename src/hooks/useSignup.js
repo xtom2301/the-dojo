@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import {
-  projectAuth,
-  projectStorage,
-  projectFirestore,
-} from '../firebase/config';
+import { auth, storage, db } from '../firebase/config';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { setDoc, doc } from 'firebase/firestore';
+import { ref } from 'firebase/storage';
 import { useAuthContext } from './useAuthContext';
 
 export const useSignup = () => {
@@ -17,22 +16,19 @@ export const useSignup = () => {
     setIsPending(true);
 
     try {
-      const res = await projectAuth.createUserWithEmailAndPassword(
-        email,
-        password
-      );
+      const res = await createUserWithEmailAndPassword(auth, email, password);
 
       if (!res) {
         throw new Error('Could not complete signup');
       }
 
       const uploadPath = `thumbnails/${res.user.uid}/${thumbnail.name}`;
-      const img = await projectStorage.ref(uploadPath).put(thumbnail);
+      const img = await ref(storage, `${uploadPath}/${thumbnail}`);
       const imgUrl = await img.ref.getDownloadURL();
 
       await res.user.updateProfile({ displayName, photoURL: imgUrl });
 
-      await projectFirestore.collection('users').doc(res.user.uid).set({
+      await setDoc(doc(db, 'users', res.user.uid), {
         online: true,
         displayName,
         photoURL: imgUrl,
